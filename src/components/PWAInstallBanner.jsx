@@ -40,17 +40,33 @@ export default function PWAInstallBanner() {
   if (!showBanner) return null;
 
   return (
-    <div className="bg-[#1B6B2F] text-white px-4 py-3 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-md">
-      <div className="text-[14px] font-medium text-center sm:text-left">
-        Install the BOS Admin App for native desktop/mobile access
+    <div className="fixed inset-0 bg-black/60 z-[100] flex items-center justify-center p-4 backdrop-blur-sm transition-opacity">
+      <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+        <div className="p-6 text-center">
+          <div className="w-16 h-16 bg-[#F4F3EE] rounded-2xl mx-auto flex items-center justify-center mb-4 shadow-sm border border-gray-100">
+            <Download size={32} className="text-[#1B6B2F]" />
+          </div>
+          <h3 className="text-xl font-bold text-gray-900 mb-2">Install BOS Admin</h3>
+          <p className="text-sm text-gray-600 mb-6">
+            Install this application to your device's home screen for quick access, offline support, and a native app experience.
+          </p>
+          <div className="flex flex-col gap-3">
+            <button 
+              onClick={handleInstallClick}
+              className="w-full bg-[#1B6B2F] text-white px-4 py-3 rounded-xl font-bold hover:bg-[#145324] transition-colors flex items-center justify-center gap-2 shadow-sm"
+            >
+              <Download size={18} />
+              Install App
+            </button>
+            <button 
+              onClick={() => setShowBanner(false)}
+              className="w-full bg-gray-50 text-gray-600 px-4 py-3 rounded-xl font-medium hover:bg-gray-100 transition-colors"
+            >
+              Maybe Later
+            </button>
+          </div>
+        </div>
       </div>
-      <button 
-        onClick={handleInstallClick}
-        className="shrink-0 bg-white text-[#1B6B2F] px-4 py-2 rounded-full text-[13px] font-bold hover:bg-[#F9F8F5] transition-colors flex items-center gap-2"
-      >
-        <Download size={16} />
-        Install Now
-      </button>
     </div>
   );
 }

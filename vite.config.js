@@ -9,7 +9,7 @@ export default defineConfig({
     tailwindcss(),
     VitePWA({
       registerType: 'autoUpdate',
-      injectRegister: null, // We will manually add registration in index.html as requested
+      injectRegister: 'auto',
       manifest: {
         name: 'BOS Invoices',
         short_name: 'BOS Admin',
@@ -18,14 +18,14 @@ export default defineConfig({
         display: 'standalone',
         icons: [
           {
-            src: '/vite.svg', // Placeholder icon
+            src: '/logo.png',
             sizes: '192x192',
-            type: 'image/svg+xml'
+            type: 'image/png'
           },
           {
-            src: '/vite.svg', // Placeholder icon
+            src: '/logo.png',
             sizes: '512x512',
-            type: 'image/svg+xml'
+            type: 'image/png'
           }
         ]
       },

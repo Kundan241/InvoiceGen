@@ -13,13 +13,5 @@
   <body class="bg-[#F4F3EE] font-sans antialiased text-[#111110]">
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
-    <!-- Service Worker Registration -->
-    <script>
-      if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-          navigator.serviceWorker.register('/sw.js', { scope: '/' });
-        });
-      }
-    </script>
   </body>
 </html>
