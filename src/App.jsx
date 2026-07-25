@@ -2,9 +2,12 @@ import React from 'react'
 import PWAInstallBanner from './components/PWAInstallBanner'
 import InvoiceGenerator from './components/InvoiceGenerator'
 
+import { Toaster } from 'react-hot-toast'
+
 function App() {
   return (
     <div className="min-h-screen flex flex-col">
+      <Toaster position="bottom-center" toastOptions={{ style: { background: '#333', color: '#fff' } }} />
       {/* Top Navigation Bar */}
       <nav className="bg-[#111110] text-white h-16 flex items-center px-6 sticky top-0 z-50">
         <div className="font-bold text-[16px] tracking-wide">

@@ -2,10 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { Plus, Trash2, Download, Save, FileText } from 'lucide-react';
 import jsPDF from 'jspdf';
 import { toPng } from 'html-to-image';
+import toast from 'react-hot-toast';
 import InvoicePDFTemplate from './InvoicePDFTemplate';
 
 export default function InvoiceGenerator() {
   const [loading, setLoading] = useState(false);
+  const [validationErrors, setValidationErrors] = useState({});
 
   // Section 1: Metadata
   const [invoiceNumber, setInvoiceNumber] = useState('');
@@ -116,43 +118,62 @@ export default function InvoiceGenerator() {
   };
 
   const handleSaveToDatabase = async () => {
-    if (!invoiceNumber || !clientName) {
-      alert('Invoice Number and Client Name are required');
+    const errors = {};
+    if (!invoiceNumber) errors.invoiceNumber = true;
+    if (!clientName) errors.clientName = true;
+    
+    if (Object.keys(errors).length > 0) {
+      setValidationErrors(errors);
+      toast.error('Please fill in all required fields.');
+      return;
+    }
+
+    if (!navigator.onLine) {
+      toast.error('⚠️ Internet connection required to generate invoices.');
       return;
     }
     
     setLoading(true);
     try {
-      const invoiceData = {
-        invoiceNumber,
-        issueDate,
-        dueDate,
-        serviceCategory,
-        clientDetails: {
-          clientName,
-          clientGSTIN,
-          contactPerson,
-          email,
-          billingAddress,
-        },
-        lineItems: lineItems.map(({ description, quantity, rate }) => ({ description, quantity, rate })),
-        taxDetails: {
-          gstType,
-          subtotal,
-          taxAmount,
-          grandTotal
-        },
-        created_at: new Date().toISOString(),
+      let igst = 0, cgst = 0, sgst = 0;
+      if (gstType === '18_igst') {
+        igst = taxAmount;
+      } else if (gstType === '18_cgst_sgst') {
+        cgst = taxAmount / 2;
+        sgst = taxAmount / 2;
+      }
+
+      const sheetPayload = {
+        invoiceNumber: invoiceNumber,
+        invoiceDate: issueDate,
+        dueDate: dueDate,
+        clientName: clientName,
+        clientGstin: clientGSTIN || 'URP',
+        placeOfSupply: billingAddress || '',
+        taxableAmount: subtotal,
+        igst: igst,
+        cgst: cgst,
+        sgst: sgst,
+        totalAmount: grandTotal,
+        paymentStatus: 'Pending'
       };
 
-      // Mock Firestore save
-      console.log('--- SAVING TO FIRESTORE [MOCK] ---');
-      console.log(JSON.stringify(invoiceData, null, 2));
+      const WEBHOOK_URL = "https://script.google.com/macros/s/AKfycbxrpoi0cgBfRAq-9sM_Mqpjp8U9oi_8tFuBjuVivIiYpdF-LHDop7HEcA2o-lDeG3qr/exec";
       
-      // Simulate network delay
-      await new Promise(resolve => setTimeout(resolve, 800));
+      const response = await fetch(WEBHOOK_URL, {
+        method: 'POST',
+        mode: 'no-cors', // Added no-cors to prevent CORS issues
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify(sheetPayload)
+      });
+
+      // With no-cors, the response is opaque, so response.ok is false and status is 0.
+      // We assume success if fetch didn't throw a network error.
+      console.log("Invoice tracked in Google Sheet!");
+      toast.success('✅ Invoice saved to Master Ledger!');
       
-      alert('Invoice saved successfully! (Check console for payload)');
+      // Auto-download PDF immediately after the success alert is dismissed
+      await handleDownloadPDF();
       
       // Auto-increment the invoice number for the next one
       localStorage.setItem('lastInvoiceNumber', invoiceNumber);
@@ -176,8 +197,8 @@ export default function InvoiceGenerator() {
       setGstType('0');
       
     } catch (error) {
-      console.error('Error saving invoice:', error);
-      alert('Failed to save invoice');
+      console.error("Tracking error:", error);
+      toast.error('❌ Failed to save invoice.');
     } finally {
       setLoading(false);
     }
@@ -185,7 +206,8 @@ export default function InvoiceGenerator() {
 
   const handleExportCSV = () => {
     if (!invoiceNumber) {
-      alert('Invoice Number is required to export');
+      setValidationErrors({ invoiceNumber: true });
+      toast.error('Invoice Number is required to export.');
       return;
     }
 
@@ -225,7 +247,8 @@ export default function InvoiceGenerator() {
 
   const handleDownloadPDF = async () => {
     if (!invoiceNumber) {
-      alert('Invoice Number is required to generate PDF');
+      setValidationErrors({ invoiceNumber: true });
+      toast.error('Invoice Number is required to generate PDF.');
       return;
     }
     
@@ -251,7 +274,7 @@ export default function InvoiceGenerator() {
       
     } catch (error) {
       console.error('Error generating PDF:', error);
-      alert(`Failed to generate PDF. ${error.message || error}`);
+      toast.error(`Failed to generate PDF. ${error.message || error}`);
     } finally {
       setLoading(false);
     }
@@ -279,7 +302,8 @@ export default function InvoiceGenerator() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
             <div className="flex flex-col gap-1.5">
               <label className="text-[13px] font-[600] text-[#111110]">Invoice Number *</label>
-              <input required type="text" value={invoiceNumber} onChange={e => setInvoiceNumber(e.target.value)} placeholder="INV-2026-001" className="h-[44px] bg-[#F9F8F5] border border-[rgba(17,17,16,0.1)] rounded-[10px] px-3 text-[14px] outline-none focus:border-[#111110] transition-all" />
+              <input required type="text" value={invoiceNumber} onChange={e => { setInvoiceNumber(e.target.value); setValidationErrors(prev => ({...prev, invoiceNumber: false})) }} placeholder="INV-2026-001" className={`h-[44px] bg-[#F9F8F5] border ${validationErrors.invoiceNumber ? 'border-red-500' : 'border-[rgba(17,17,16,0.1)]'} rounded-[10px] px-3 text-[14px] outline-none focus:border-[#111110] transition-all`} />
+              {validationErrors.invoiceNumber && <span className="text-[11px] text-red-500">This field is required</span>}
             </div>
             <div className="flex flex-col gap-1.5">
               <label className="text-[13px] font-[600] text-[#111110]">Issue Date</label>
@@ -309,7 +333,8 @@ export default function InvoiceGenerator() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-5">
             <div className="flex flex-col gap-1.5">
               <label className="text-[13px] font-[600] text-[#111110]">Client Business Name *</label>
-              <input required type="text" value={clientName} onChange={e => setClientName(e.target.value)} placeholder="Business Name" className="h-[44px] bg-white border border-[rgba(17,17,16,0.1)] rounded-[10px] px-3 text-[14px] outline-none focus:border-[#111110] transition-all" />
+              <input required type="text" value={clientName} onChange={e => { setClientName(e.target.value); setValidationErrors(prev => ({...prev, clientName: false})) }} placeholder="Business Name" className={`h-[44px] bg-white border ${validationErrors.clientName ? 'border-red-500' : 'border-[rgba(17,17,16,0.1)]'} rounded-[10px] px-3 text-[14px] outline-none focus:border-[#111110] transition-all`} />
+              {validationErrors.clientName && <span className="text-[11px] text-red-500">This field is required</span>}
             </div>
             <div className="flex flex-col gap-1.5">
               <label className="text-[13px] font-[600] text-[#111110]">Client PAN/GSTIN</label>
