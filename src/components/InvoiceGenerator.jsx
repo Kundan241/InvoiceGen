@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, Trash2, Download, Save, FileText } from 'lucide-react';
 import jsPDF from 'jspdf';
-import { toPng } from 'html-to-image';
+import { toJpeg } from 'html-to-image';
 import toast from 'react-hot-toast';
 import InvoicePDFTemplate from './InvoicePDFTemplate';
 
-export default function InvoiceGenerator() {
+export default function InvoiceGenerator({ isProforma = false }) {
   const [loading, setLoading] = useState(false);
   const [validationErrors, setValidationErrors] = useState({});
 
@@ -61,7 +61,8 @@ export default function InvoiceGenerator() {
     }
     const fy = `${currentYear}-${nextYear}`;
     
-    setInvoiceNumber(`BOS${currentMonth}${nextNumber}/${fy}`);
+    const prefix = isProforma ? 'PI-BOS' : 'BOS';
+    setInvoiceNumber(`${prefix}${currentMonth}${nextNumber}/${fy}`);
   }, []);
 
   // Update line item description when Virtual Office is selected
@@ -177,7 +178,9 @@ export default function InvoiceGenerator() {
       
       // Auto-increment the invoice number for the next one
       localStorage.setItem('lastInvoiceNumber', invoiceNumber);
-      const match = invoiceNumber.match(/(BOS[A-Z]+)(\d+)(\/.*)/);
+      const prefix = isProforma ? 'PI-BOS' : 'BOS';
+      const regex = new RegExp(`(${prefix}[A-Z]+)(\\d+)(\\/.*)`);
+      const match = invoiceNumber.match(regex);
       if (match) {
         const nextNum = (parseInt(match[2], 10) + 1).toString().padStart(2, '0');
         setInvoiceNumber(`${match[1]}${nextNum}${match[3]}`);
@@ -255,18 +258,34 @@ export default function InvoiceGenerator() {
     setLoading(true);
     try {
       const element = document.getElementById('pdf-template');
-      const dataUrl = await toPng(element, { quality: 1, pixelRatio: 2 });
+      const dataUrl = await toJpeg(element, { quality: 0.85, pixelRatio: 2 });
       
       const pdf = new jsPDF('p', 'mm', 'a4');
       const pdfWidth = pdf.internal.pageSize.getWidth();
-      const pdfHeight = (element.offsetHeight * pdfWidth) / element.offsetWidth;
+      const pageHeightInMm = pdf.internal.pageSize.getHeight();
       
-      pdf.addImage(dataUrl, 'PNG', 0, 0, pdfWidth, pdfHeight);
+      const fullHeightInMm = (element.offsetHeight * pdfWidth) / element.offsetWidth;
+      let heightLeft = fullHeightInMm;
+      let position = 0;
+      
+      pdf.addImage(dataUrl, 'JPEG', 0, position, pdfWidth, fullHeightInMm);
+      heightLeft -= pageHeightInMm;
+      
+      // Use a tolerance of 2mm to avoid creating a blank page due to sub-pixel height rounding
+      while (heightLeft > 2) {
+        position = heightLeft - fullHeightInMm;
+        pdf.addPage();
+        pdf.addImage(dataUrl, 'JPEG', 0, position, pdfWidth, fullHeightInMm);
+        heightLeft -= pageHeightInMm;
+      }
+      
       pdf.save(`Invoice_${invoiceNumber}.pdf`);
       
       // Auto-increment the invoice number for the next one if it was just downloaded
       localStorage.setItem('lastInvoiceNumber', invoiceNumber);
-      const match = invoiceNumber.match(/(BOS[A-Z]+)(\d+)(\/.*)/);
+      const prefix = isProforma ? 'PI-BOS' : 'BOS';
+      const regex = new RegExp(`(${prefix}[A-Z]+)(\\d+)(\\/.*)`);
+      const match = invoiceNumber.match(regex);
       if (match) {
         const nextNum = (parseInt(match[2], 10) + 1).toString().padStart(2, '0');
         setInvoiceNumber(`${match[1]}${nextNum}${match[3]}`);
@@ -287,12 +306,12 @@ export default function InvoiceGenerator() {
         <InvoicePDFTemplate data={{
           invoiceNumber, issueDate, dueDate, serviceCategory,
           clientName, clientGSTIN, contactPerson, email, billingAddress,
-          lineItems, subtotal, taxAmount, grandTotal, gstType
+          lineItems, subtotal, taxAmount, grandTotal, gstType, isProforma
         }} />
       </div>
       <div className="mb-7">
-        <h1 className="text-[24px] font-[800] text-[#111110]">Create Invoice</h1>
-        <p className="text-[14px] text-[rgba(17,17,16,0.5)] mt-1">Generate and log new invoices for clients</p>
+        <h1 className="text-[24px] font-[800] text-[#111110]">{isProforma ? 'Create Proforma Invoice' : 'Create Invoice'}</h1>
+        <p className="text-[14px] text-[rgba(17,17,16,0.5)] mt-1">Generate and log new {isProforma ? 'proforma invoices' : 'invoices'} for clients</p>
       </div>
 
       <div className="bg-white border border-[rgba(17,17,16,0.08)] rounded-[16px] shadow-sm overflow-hidden mb-8">
