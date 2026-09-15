@@ -37,32 +37,52 @@ export default function InvoiceGenerator({ isProforma = false }) {
 
   // Auto-generate invoice number on mount
   useEffect(() => {
-    let lastNumber = 0;
-    const storedLastInvoice = localStorage.getItem('lastInvoiceNumber');
-    if (storedLastInvoice) {
-      const match = storedLastInvoice.match(/BOS[A-Z]+(\d+)\//);
-      if (match && match[1]) {
-        lastNumber = parseInt(match[1], 10);
+    const fetchLastInvoice = async () => {
+      let lastNumber = 0;
+      
+      try {
+        const WEBHOOK_URL = "https://script.google.com/macros/s/AKfycbxrpoi0cgBfRAq-9sM_Mqpjp8U9oi_8tFuBjuVivIiYpdF-LHDop7HEcA2o-lDeG3qr/exec";
+        const response = await fetch(`${WEBHOOK_URL}?action=getLastInvoice`);
+        const data = await response.json();
+        
+        if (data && data.lastInvoiceNumber) {
+          const match = data.lastInvoiceNumber.match(/BOS[A-Z]+(\d+)\//);
+          if (match && match[1]) {
+            lastNumber = parseInt(match[1], 10);
+          }
+        }
+      } catch (err) {
+        console.warn("Failed to fetch from sheet, falling back to local storage.", err);
+        // Fallback to localStorage if the Google Script isn't updated yet
+        const storedLastInvoice = localStorage.getItem('lastInvoiceNumber');
+        if (storedLastInvoice) {
+          const match = storedLastInvoice.match(/BOS[A-Z]+(\d+)\//);
+          if (match && match[1]) {
+            lastNumber = parseInt(match[1], 10);
+          }
+        }
       }
-    }
-    
-    const nextNumber = (lastNumber + 1).toString().padStart(2, '0');
-    
-    const date = new Date();
-    const monthNames = ["JANUARY", "FEBRUARY", "MARCH", "APRIL", "MAY", "JUNE", "JULY", "AUGUST", "SEPTEMBER", "OCTOBER", "NOVEMBER", "DECEMBER"];
-    const currentMonth = monthNames[date.getMonth()];
-    
-    // Calculate Financial Year
-    let currentYear = date.getFullYear();
-    let nextYear = currentYear + 1;
-    if (date.getMonth() < 3) { // Jan, Feb, Mar belong to previous FY
-      currentYear -= 1;
-      nextYear -= 1;
-    }
-    const fy = `${currentYear}-${nextYear}`;
-    
-    const prefix = isProforma ? 'PI-BOS' : 'BOS';
-    setInvoiceNumber(`${prefix}${currentMonth}${nextNumber}/${fy}`);
+
+      const nextNumber = (lastNumber + 1).toString().padStart(2, '0');
+      
+      const date = new Date();
+      const monthNames = ["JANUARY", "FEBRUARY", "MARCH", "APRIL", "MAY", "JUNE", "JULY", "AUGUST", "SEPTEMBER", "OCTOBER", "NOVEMBER", "DECEMBER"];
+      const currentMonth = monthNames[date.getMonth()];
+      
+      // Calculate Financial Year
+      let currentYear = date.getFullYear();
+      let nextYear = currentYear + 1;
+      if (date.getMonth() < 3) { // Jan, Feb, Mar belong to previous FY
+        currentYear -= 1;
+        nextYear -= 1;
+      }
+      const fy = `${currentYear}-${nextYear}`;
+      
+      const prefix = isProforma ? 'PI-BOS' : 'BOS';
+      setInvoiceNumber(`${prefix}${currentMonth}${nextNumber}/${fy}`);
+    };
+
+    fetchLastInvoice();
   }, []);
 
   // Update line item description when Virtual Office is selected
