@@ -1,4 +1,290 @@
 import React from 'react';
+import { Page, Text, View, Document, StyleSheet, Image } from '@react-pdf/renderer';
+
+const styles = StyleSheet.create({
+  page: {
+    backgroundColor: '#FFFFFF',
+    fontFamily: 'Helvetica',
+    fontSize: 10,
+    color: '#111110',
+    paddingTop: 40,
+    paddingLeft: 40,
+    paddingRight: 40,
+    paddingBottom: 40,
+    flexDirection: 'column',
+  },
+  headerRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 20,
+  },
+  companyInfo: {
+    width: '55%',
+  },
+  logo: {
+    height: 40,
+    width: 120, // Adjust depending on aspect ratio
+    objectFit: 'contain',
+    marginBottom: 10,
+  },
+  companyName: {
+    fontSize: 12,
+    fontWeight: 'bold',
+    color: '#1B6B2F',
+    marginBottom: 5,
+  },
+  companyDetails: {
+    fontSize: 8,
+    color: '#111110',
+    lineHeight: 1.4,
+  },
+  invoiceInfo: {
+    width: '45%',
+    paddingLeft: 20,
+    paddingTop: 10,
+  },
+  title: {
+    fontSize: 28,
+    fontWeight: 'bold',
+    color: '#1B6B2F',
+    marginBottom: 5,
+  },
+  invoiceNumber: {
+    fontSize: 10,
+    color: '#666',
+    marginBottom: 15,
+  },
+  infoRow: {
+    flexDirection: 'row',
+    paddingVertical: 6,
+    borderTopWidth: 1,
+    borderTopColor: '#E5E7EB',
+  },
+  infoLabel: {
+    width: 100,
+    fontWeight: 'bold',
+    color: '#1B6B2F',
+    fontSize: 8,
+  },
+  infoValue: {
+    flex: 1,
+    textAlign: 'right',
+    fontSize: 8,
+  },
+  addressesRow: {
+    flexDirection: 'row',
+    gap: 20,
+    marginBottom: 15,
+  },
+  addressBox: {
+    flex: 1,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    borderRadius: 6,
+    padding: 10,
+  },
+  addressTitle: {
+    fontSize: 9,
+    fontWeight: 'bold',
+    color: '#1B6B2F',
+    marginBottom: 5,
+  },
+  addressLine: {
+    width: '100%',
+    height: 1,
+    backgroundColor: '#1B6B2F',
+    marginBottom: 8,
+  },
+  clientName: {
+    fontSize: 10,
+    fontWeight: 'bold',
+    marginBottom: 5,
+  },
+  clientAddress: {
+    fontSize: 8,
+    marginBottom: 8,
+    lineHeight: 1.4,
+    minHeight: 25,
+  },
+  clientGstRow: {
+    flexDirection: 'row',
+    borderTopWidth: 1,
+    borderTopColor: '#E5E7EB',
+    paddingTop: 5,
+  },
+  clientGstLabel: {
+    fontSize: 8,
+    color: '#666',
+    width: 50,
+  },
+  clientGstValue: {
+    fontSize: 8,
+    fontWeight: 'bold',
+  },
+  table: {
+    width: '100%',
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    borderRadius: 6,
+    marginBottom: 15,
+  },
+  tableHeader: {
+    flexDirection: 'row',
+    backgroundColor: '#1B6B2F',
+    color: '#FFFFFF',
+    fontSize: 8,
+    fontWeight: 'bold',
+  },
+  tableHeaderCol: {
+    paddingVertical: 8,
+    paddingHorizontal: 5,
+    borderRightWidth: 1,
+    borderRightColor: 'rgba(255,255,255,0.2)',
+  },
+  tableRow: {
+    flexDirection: 'row',
+    borderTopWidth: 1,
+    borderTopColor: '#E5E7EB',
+    fontSize: 8,
+    minHeight: 25,
+    alignItems: 'center',
+  },
+  tableCol: {
+    paddingVertical: 5,
+    paddingHorizontal: 5,
+    borderRightWidth: 1,
+    borderRightColor: '#E5E7EB',
+  },
+  col1: { width: '8%', textAlign: 'center' },
+  col2: { width: '40%', textAlign: 'left' },
+  col3: { width: '12%', textAlign: 'center' },
+  col4: { width: '20%', textAlign: 'center' },
+  col5: { width: '20%', textAlign: 'center', borderRightWidth: 0 },
+  totalsSection: {
+    flexDirection: 'row',
+    gap: 20,
+    marginBottom: 15,
+  },
+  amountInWords: {
+    width: '50%',
+    backgroundColor: '#F6F6F6',
+    borderRadius: 6,
+    padding: 10,
+    height: 70,
+  },
+  totalsBox: {
+    width: '50%',
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    borderRadius: 6,
+  },
+  totalRow: {
+    flexDirection: 'row',
+    borderBottomWidth: 1,
+    borderBottomColor: '#E5E7EB',
+    height: 25,
+    alignItems: 'center',
+  },
+  totalLabel: {
+    width: '50%',
+    paddingHorizontal: 10,
+    fontWeight: 'bold',
+    fontSize: 8,
+    borderRightWidth: 1,
+    borderRightColor: '#E5E7EB',
+  },
+  totalValue: {
+    width: '50%',
+    paddingHorizontal: 10,
+    textAlign: 'right',
+    fontSize: 8,
+  },
+  grandTotalRow: {
+    flexDirection: 'row',
+    backgroundColor: '#E6F0E9',
+    height: 30,
+    alignItems: 'center',
+  },
+  grandTotalLabel: {
+    width: '50%',
+    paddingHorizontal: 10,
+    fontWeight: 'bold',
+    color: '#1B6B2F',
+    fontSize: 9,
+  },
+  grandTotalValue: {
+    width: '50%',
+    paddingHorizontal: 10,
+    textAlign: 'right',
+    fontWeight: 'bold',
+    color: '#1B6B2F',
+    fontSize: 10,
+  },
+  footerSection: {
+    flexDirection: 'row',
+    gap: 20,
+    marginBottom: 15,
+  },
+  footerBox: {
+    width: '50%',
+  },
+  footerTitle: {
+    fontSize: 9,
+    fontWeight: 'bold',
+    color: '#1B6B2F',
+    marginBottom: 5,
+  },
+  bankRow: {
+    flexDirection: 'row',
+    marginBottom: 3,
+    fontSize: 8,
+  },
+  bankLabel: {
+    width: 80,
+  },
+  bankValue: {
+    fontWeight: 'bold',
+  },
+  termsText: {
+    fontSize: 8,
+    lineHeight: 1.4,
+  },
+  thankYouBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 'auto',
+    marginBottom: 20,
+  },
+  thankYouLine: {
+    flex: 1,
+    height: 1,
+    backgroundColor: '#1B6B2F',
+  },
+  thankYouText: {
+    paddingHorizontal: 15,
+    fontSize: 10,
+    fontStyle: 'italic',
+  },
+  bottomEdge: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: 8,
+    flexDirection: 'row',
+  },
+  bottomEdgeGreen: {
+    width: '85%',
+    backgroundColor: '#1B6B2F',
+    height: 8,
+  },
+  bottomEdgeOrange: {
+    width: '15%',
+    backgroundColor: '#F4831F',
+    height: 8,
+  }
+});
 
 export default function InvoicePDFTemplate({ data }) {
   const {
@@ -31,207 +317,195 @@ export default function InvoicePDFTemplate({ data }) {
     return str.trim();
   };
 
-  // Ensure minimum 2 rows in the table to save space
   const displayItems = [...lineItems];
   while (displayItems.length < 2) {
     displayItems.push({ id: Math.random(), description: '', quantity: '', rate: '', isEmpty: true });
   }
 
   const DashedLines = () => (
-    <div className="flex flex-col gap-[22px] mt-4 mb-2">
-      <div className="border-b border-dashed border-[#9CA3AF] w-full h-[1px]"></div>
-      <div className="border-b border-dashed border-[#9CA3AF] w-full h-[1px]"></div>
-      <div className="border-b border-dashed border-[#9CA3AF] w-full h-[1px]"></div>
-    </div>
+    <View style={{ flexDirection: 'column', gap: 15, marginVertical: 10 }}>
+      <View style={{ borderBottomWidth: 1, borderBottomStyle: 'dashed', borderColor: '#9CA3AF' }} />
+      <View style={{ borderBottomWidth: 1, borderBottomStyle: 'dashed', borderColor: '#9CA3AF' }} />
+      <View style={{ borderBottomWidth: 1, borderBottomStyle: 'dashed', borderColor: '#9CA3AF' }} />
+    </View>
   );
 
   return (
-    // A4 Width at 96 DPI is 794px. Min height is 1123px (A4 Height).
-    <div id="pdf-template" className="bg-[#FFFFFF] font-sans text-[#111110] w-[794px] min-h-[1123px] relative flex flex-col box-border px-12 pt-8 pb-0">
-      
-      <div className="flex-1 relative z-10 flex flex-col">
+    <Document>
+      <Page size="A4" style={styles.page}>
         
-        {/* Header Section */}
-        <div className="flex justify-between items-start mb-6">
-          <div className="w-[55%]">
-            <img src="/logo.png" alt="BOS Logo" className="h-[65px] object-contain mb-4" />
-            <h2 className="text-[17px] font-[700] text-[#1B6B2F] mb-2 uppercase">BHARAT OFFICE SETU PRIVATE LIMITED</h2>
-            <div className="flex flex-col gap-0.5 text-[12px] text-[#111110] font-[500] leading-[1.4]">
-              <div>B-1 F/F, Opp-savitri Cinema, Greater Kailash,<br/>South Delhi, New Delhi, Delhi, India, 110048</div>
-              <div className="mt-1">+91 9019000513</div>
-              <div>Partners@bharatofficesetu.com</div>
-              <div>www.bharatofficesetu.com</div>
-              <div className="mt-1">CIN: U68200DL2025PTC456641</div>
-              <div>PAN: AAOCB0254A &nbsp;|&nbsp; GSTIN: 06AAOCB0254A1Z7</div>
-            </div>
-          </div>
-
-          <div className="w-[45%] pl-4 flex flex-col pt-4">
-            <h1 className="text-[44px] font-[800] text-[#1B6B2F] tracking-wide leading-none mb-2">{isProforma ? 'PROFORMA INVOICE' : 'INVOICE'}</h1>
-            <div className="text-[14px] font-[500] text-[rgba(17,17,16,0.7)] mb-6"># {invoiceNumber || 'BOSJULY12/2026-2027'}</div>
+        {/* Header */}
+        <View style={styles.headerRow}>
+          <View style={styles.companyInfo}>
+            <Image src="/logo.png" style={styles.logo} />
+            <Text style={styles.companyName}>BHARAT OFFICE SETU PRIVATE LIMITED</Text>
+            <View style={styles.companyDetails}>
+              <Text>B-1 F/F, Opp-savitri Cinema, Greater Kailash,</Text>
+              <Text>South Delhi, New Delhi, Delhi, India, 110048</Text>
+              <Text style={{ marginTop: 2 }}>+91 9019000513</Text>
+              <Text>Partners@bharatofficesetu.com</Text>
+              <Text>www.bharatofficesetu.com</Text>
+              <Text style={{ marginTop: 2 }}>CIN: U68200DL2025PTC456641</Text>
+              <Text>PAN: AAOCB0254A  |  GSTIN: 06AAOCB0254A1Z7</Text>
+            </View>
+          </View>
+          
+          <View style={styles.invoiceInfo}>
+            <Text style={styles.title}>{isProforma ? 'PROFORMA INVOICE' : 'INVOICE'}</Text>
+            <Text style={styles.invoiceNumber}># {invoiceNumber || 'BOSJULY12/2026-2027'}</Text>
             
-            <div className="w-full text-[12px]">
-              <div className="flex py-3 border-t border-[rgba(17,17,16,0.15)]">
-                <span className="w-[140px] text-[#1B6B2F] font-[700]">INVOICE DATE</span>
-                <span className="text-[#111110] flex-1 text-right">{issueDate || '27 July 2026'}</span>
-              </div>
-              <div className="flex py-3 border-t border-[rgba(17,17,16,0.15)]">
-                <span className="w-[140px] text-[#1B6B2F] font-[700]">DUE DATE</span>
-                <span className="text-[#111110] flex-1 text-right">{dueDate || '28 July 2026'}</span>
-              </div>
-              <div className="flex py-3 border-t border-b border-[rgba(17,17,16,0.15)]">
-                <span className="w-[140px] text-[#1B6B2F] font-[700]">PAYMENT TERMS</span>
-                <span className="text-[#111110] flex-1 text-right">Net 15 Days</span>
-              </div>
-            </div>
-          </div>
-        </div>
+            <View style={styles.infoRow}>
+              <Text style={styles.infoLabel}>INVOICE DATE</Text>
+              <Text style={styles.infoValue}>{issueDate}</Text>
+            </View>
+            <View style={styles.infoRow}>
+              <Text style={styles.infoLabel}>DUE DATE</Text>
+              <Text style={styles.infoValue}>{dueDate}</Text>
+            </View>
+            <View style={[styles.infoRow, { borderBottomWidth: 1, borderBottomColor: '#E5E7EB' }]}>
+              <Text style={styles.infoLabel}>PAYMENT TERMS</Text>
+              <Text style={styles.infoValue}>Net 15 Days</Text>
+            </View>
+          </View>
+        </View>
 
         {/* Bill To & Ship To */}
-        <div className="flex gap-6 mb-4 mt-2">
-          <div className="flex-1 border border-[rgba(17,17,16,0.1)] rounded-[8px] p-4 flex flex-col">
-            <div className="text-[13px] font-[700] text-[#1B6B2F] mb-2 uppercase tracking-wide">BILL TO</div>
-            <div className="w-full h-[2px] bg-[#1B6B2F] mb-3"></div>
-            <div className="font-[700] text-[13px] text-[#111110] mb-1">{clientName || 'DREAM BEAUTY FASHION'}</div>
+        <View style={styles.addressesRow}>
+          <View style={styles.addressBox}>
+            <Text style={styles.addressTitle}>BILL TO</Text>
+            <View style={styles.addressLine} />
+            <Text style={styles.clientName}>{clientName || 'DREAM BEAUTY FASHION'}</Text>
             {billingAddress ? (
-              <div className="text-[12px] text-[#111110] leading-relaxed whitespace-pre-wrap flex-1 min-h-[40px]">{billingAddress}</div>
+              <Text style={styles.clientAddress}>{billingAddress}</Text>
             ) : <DashedLines />}
-            <div className="w-full h-[1px] bg-[rgba(17,17,16,0.1)] my-2"></div>
-            <div className="flex text-[12px]">
-              <span className="font-[500] text-[rgba(17,17,16,0.6)] w-[80px]">GST No. :</span>
-              <span className="font-[600] text-[#111110]">{clientGSTIN || 'AWVPK5125B'}</span>
-            </div>
-          </div>
+            <View style={styles.clientGstRow}>
+              <Text style={styles.clientGstLabel}>GST No. :</Text>
+              <Text style={styles.clientGstValue}>{clientGSTIN || 'AWVPK5125B'}</Text>
+            </View>
+          </View>
 
-          <div className="flex-1 border border-[rgba(17,17,16,0.1)] rounded-[8px] p-4 flex flex-col">
-            <div className="text-[13px] font-[700] text-[#1B6B2F] mb-2 uppercase tracking-wide">SHIP TO</div>
-            <div className="w-full h-[2px] bg-[#1B6B2F] mb-3"></div>
-            <div className="font-[700] text-[13px] text-[#111110] mb-1">{clientName || 'DREAM BEAUTY FASHION'}</div>
+          <View style={styles.addressBox}>
+            <Text style={styles.addressTitle}>SHIP TO</Text>
+            <View style={styles.addressLine} />
+            <Text style={styles.clientName}>{clientName || 'DREAM BEAUTY FASHION'}</Text>
             {billingAddress ? (
-              <div className="text-[12px] text-[#111110] leading-relaxed whitespace-pre-wrap flex-1 min-h-[40px]">{billingAddress}</div>
+              <Text style={styles.clientAddress}>{billingAddress}</Text>
             ) : <DashedLines />}
-            <div className="w-full h-[1px] bg-[rgba(17,17,16,0.1)] my-2"></div>
-            <div className="flex text-[12px]">
-              <span className="font-[500] text-[rgba(17,17,16,0.6)] w-[80px]">GST No. :</span>
-              <span className="font-[600] text-[#111110]">{clientGSTIN || 'AWVPK5125B'}</span>
-            </div>
-          </div>
-        </div>
+            <View style={styles.clientGstRow}>
+              <Text style={styles.clientGstLabel}>GST No. :</Text>
+              <Text style={styles.clientGstValue}>{clientGSTIN || 'AWVPK5125B'}</Text>
+            </View>
+          </View>
+        </View>
 
         {/* Table */}
-        <div className="border border-[rgba(17,17,16,0.1)] rounded-[8px] overflow-hidden mb-4">
-          <table className="w-full text-center border-collapse">
-            <thead>
-              <tr className="bg-[#1B6B2F] text-[#FFFFFF] text-[11px] font-[700] tracking-wide">
-                <th className="py-3 px-3 w-[8%] border-r border-[#FFFFFF]/20">SR. NO.</th>
-                <th className="py-3 px-4 text-left border-r border-[#FFFFFF]/20">DESCRIPTION</th>
-                <th className="py-3 px-3 w-[12%] border-r border-[#FFFFFF]/20">QTY</th>
-                <th className="py-3 px-3 w-[20%] border-r border-[#FFFFFF]/20">UNIT PRICE (₹)</th>
-                <th className="py-3 px-3 w-[20%]">AMOUNT (₹)</th>
-              </tr>
-            </thead>
-            <tbody>
-              {displayItems.map((item, i) => (
-                <tr key={i} className="border-t border-[rgba(17,17,16,0.1)] h-[35px] text-[12px]">
-                  <td className="border-r border-[rgba(17,17,16,0.1)] text-[#111110] font-[500]">{i + 1}</td>
-                  <td className="border-r border-[rgba(17,17,16,0.1)] px-4 text-left leading-snug py-2">
-                    {!item.isEmpty ? (
-                      <div>
-                        <div className="font-[600] text-[#111110]">{item.description}</div>
-                        {serviceCategory && <div className="text-[11px] text-[rgba(17,17,16,0.7)] font-[400] mt-0.5">(Plan Type - {serviceCategory})</div>}
-                      </div>
-                    ) : null}
-                  </td>
-                  <td className="border-r border-[rgba(17,17,16,0.1)] font-[500] text-[#111110]">{!item.isEmpty ? item.quantity : ''}</td>
-                  <td className="border-r border-[rgba(17,17,16,0.1)] font-[500] text-[#111110]">{!item.isEmpty ? formatCurrency(item.rate).replace('₹', '') : ''}</td>
-                  <td className="font-[500] text-[#111110]">{!item.isEmpty ? formatCurrency(item.quantity * item.rate).replace('₹', '') : ''}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        <View style={styles.table}>
+          <View style={styles.tableHeader}>
+            <Text style={[styles.tableHeaderCol, styles.col1]}>SR. NO.</Text>
+            <Text style={[styles.tableHeaderCol, styles.col2]}>DESCRIPTION</Text>
+            <Text style={[styles.tableHeaderCol, styles.col3]}>QTY</Text>
+            <Text style={[styles.tableHeaderCol, styles.col4]}>UNIT PRICE</Text>
+            <Text style={[styles.tableHeaderCol, styles.col5]}>AMOUNT</Text>
+          </View>
+          
+          {displayItems.map((item, i) => (
+            <View key={i} style={styles.tableRow}>
+              <Text style={[styles.tableCol, styles.col1]}>{!item.isEmpty ? (i + 1) : ''}</Text>
+              <View style={[styles.tableCol, styles.col2, { justifyContent: 'center' }]}>
+                {!item.isEmpty && (
+                  <>
+                    <Text style={{ fontWeight: 'bold' }}>{item.description}</Text>
+                    {serviceCategory && <Text style={{ fontSize: 7, color: '#666', marginTop: 2 }}>(Plan Type - {serviceCategory})</Text>}
+                  </>
+                )}
+              </View>
+              <Text style={[styles.tableCol, styles.col3]}>{!item.isEmpty ? item.quantity : ''}</Text>
+              <Text style={[styles.tableCol, styles.col4]}>{!item.isEmpty ? formatCurrency(item.rate).replace('₹', 'Rs. ') : ''}</Text>
+              <Text style={[styles.tableCol, styles.col5]}>{!item.isEmpty ? formatCurrency(item.quantity * item.rate).replace('₹', 'Rs. ') : ''}</Text>
+            </View>
+          ))}
+        </View>
 
-        <div className="flex gap-4 mb-4">
-          <div className="w-[50%] flex flex-col justify-start">
-            <div className="bg-[#F6F6F6] rounded-[8px] p-4 h-[100px]">
-              <div className="text-[12px] font-[700] text-[#1B6B2F] mb-2 uppercase tracking-wide">AMOUNT IN WORDS</div>
-              <div className="text-[12px] text-[#111110] font-[500]">
-                Rupees {numberToWords(Math.round(grandTotal))} Only.
-              </div>
-            </div>
-          </div>
+        {/* Totals Section */}
+        <View style={styles.totalsSection}>
+          <View style={styles.amountInWords}>
+            <Text style={styles.addressTitle}>AMOUNT IN WORDS</Text>
+            <Text style={{ fontSize: 8 }}>Rupees {numberToWords(Math.round(grandTotal))} Only.</Text>
+          </View>
 
-          <div className="w-[50%] border border-[rgba(17,17,16,0.1)] rounded-[8px] overflow-hidden text-[12px]">
-            <div className="flex border-b border-[rgba(17,17,16,0.1)] h-[36px] items-center">
-              <div className="w-1/2 px-4 font-[700] text-[#111110] border-r border-[rgba(17,17,16,0.1)] h-full flex items-center">SUBTOTAL</div>
-              <div className="w-1/2 px-4 text-right font-[500] text-[#111110] h-full flex items-center justify-end">{formatCurrency(subtotal)}</div>
-            </div>
-            
-            <div className="flex border-b border-[rgba(17,17,16,0.1)] h-[36px] items-center">
-              <div className="w-1/2 px-4 font-[700] text-[#111110] border-r border-[rgba(17,17,16,0.1)] h-full flex items-center">CGST @9%</div>
-              <div className="w-1/2 px-4 text-right font-[500] text-[#111110] h-full flex items-center justify-end">{gstType === '18_cgst_sgst' ? formatCurrency(taxAmount / 2) : '₹0.00'}</div>
-            </div>
-            
-            <div className="flex border-b border-[rgba(17,17,16,0.1)] h-[32px] items-center">
-              <div className="w-1/2 px-4 font-[700] text-[#111110] border-r border-[rgba(17,17,16,0.1)] h-full flex items-center">SGST @9%</div>
-              <div className="w-1/2 px-4 text-right font-[500] text-[#111110] h-full flex items-center justify-end">{gstType === '18_cgst_sgst' ? formatCurrency(taxAmount / 2) : '₹0.00'}</div>
-            </div>
-
-            <div className="flex border-b border-[rgba(17,17,16,0.1)] h-[36px] items-center">
-              <div className="w-1/2 px-4 font-[700] text-[#111110] border-r border-[rgba(17,17,16,0.1)] h-full flex items-center">IGST @18%</div>
-              <div className="w-1/2 px-4 text-right font-[500] text-[#111110] h-full flex items-center justify-end">{gstType === '18_igst' ? formatCurrency(taxAmount) : '₹0.00'}</div>
-            </div>
-
-            <div className="flex bg-[#E6F0E9] text-[#1B6B2F] h-[40px] items-center">
-              <div className="w-1/2 px-4 font-[700] text-[13px] h-full flex items-center">TOTAL AMOUNT</div>
-              <div className="w-1/2 px-4 text-right font-[700] text-[15px] h-full flex items-center justify-end">{formatCurrency(grandTotal)}</div>
-            </div>
-          </div>
-        </div>
+          <View style={styles.totalsBox}>
+            <View style={styles.totalRow}>
+              <Text style={styles.totalLabel}>SUBTOTAL</Text>
+              <Text style={styles.totalValue}>{formatCurrency(subtotal).replace('₹', 'Rs. ')}</Text>
+            </View>
+            <View style={styles.totalRow}>
+              <Text style={styles.totalLabel}>CGST @9%</Text>
+              <Text style={styles.totalValue}>{gstType === '18_cgst_sgst' ? formatCurrency(taxAmount / 2).replace('₹', 'Rs. ') : 'Rs. 0.00'}</Text>
+            </View>
+            <View style={styles.totalRow}>
+              <Text style={styles.totalLabel}>SGST @9%</Text>
+              <Text style={styles.totalValue}>{gstType === '18_cgst_sgst' ? formatCurrency(taxAmount / 2).replace('₹', 'Rs. ') : 'Rs. 0.00'}</Text>
+            </View>
+            <View style={styles.totalRow}>
+              <Text style={styles.totalLabel}>IGST @18%</Text>
+              <Text style={styles.totalValue}>{gstType === '18_igst' ? formatCurrency(taxAmount).replace('₹', 'Rs. ') : 'Rs. 0.00'}</Text>
+            </View>
+            <View style={styles.grandTotalRow}>
+              <Text style={styles.grandTotalLabel}>TOTAL AMOUNT</Text>
+              <Text style={styles.grandTotalValue}>{formatCurrency(grandTotal).replace('₹', 'Rs. ')}</Text>
+            </View>
+          </View>
+        </View>
 
         {/* Remittance & Terms */}
-        <div className="flex gap-6 text-[11px] mb-4">
-          <div className="w-[50%]">
-            <div className="text-[12px] font-[700] text-[#1B6B2F] mb-1 uppercase tracking-wide">BANK DETAILS</div>
-            <div className="w-full h-[2px] bg-[#1B6B2F] mb-2"></div>
-            <table className="w-full text-[#111110]">
-              <tbody>
-                <tr className="leading-[1.8]"><td className="w-[110px] font-[500]">Account Name</td><td className="w-[10px]">:</td><td className="font-[600]">BHARAT OFFICE SETU PRIVATE LIMITED</td></tr>
-                <tr className="leading-[1.8]"><td className="font-[500]">Account Number</td><td>:</td><td className="font-[600]">44561314863</td></tr>
-                <tr className="leading-[1.8]"><td className="font-[500]">IFSC Code</td><td>:</td><td className="font-[600]">SBIN0008441</td></tr>
-                <tr className="leading-[1.8]"><td className="font-[500]">Bank Name</td><td>:</td><td className="font-[600]">STATE BANK OF INDIA (SBI)</td></tr>
-                <tr className="leading-[1.8]"><td className="font-[500]">Branch</td><td>:</td><td className="font-[600]">GREATER KAILASH- II</td></tr>
-              </tbody>
-            </table>
-          </div>
-          
-          <div className="w-[50%]">
-            <div className="text-[12px] font-[700] text-[#1B6B2F] mb-1 uppercase tracking-wide">TERMS & CONDITIONS</div>
-            <div className="w-full h-[2px] bg-[#1B6B2F] mb-3"></div>
-            <div className="text-[#111110] leading-relaxed font-[400]">
-              1. This invoice is computer-generated and does not require a signature.<br/><br/>
-              2. The amount paid is non-refundable under any circumstances.
-            </div>
-          </div>
-        </div>
+        <View style={styles.footerSection}>
+          <View style={styles.footerBox}>
+            <Text style={styles.footerTitle}>BANK DETAILS</Text>
+            <View style={styles.addressLine} />
+            <View style={styles.bankRow}>
+              <Text style={styles.bankLabel}>Account Name :</Text>
+              <Text style={styles.bankValue}>BHARAT OFFICE SETU PRIVATE LIMITED</Text>
+            </View>
+            <View style={styles.bankRow}>
+              <Text style={styles.bankLabel}>Account Number :</Text>
+              <Text style={styles.bankValue}>44561314863</Text>
+            </View>
+            <View style={styles.bankRow}>
+              <Text style={styles.bankLabel}>IFSC Code :</Text>
+              <Text style={styles.bankValue}>SBIN0008441</Text>
+            </View>
+            <View style={styles.bankRow}>
+              <Text style={styles.bankLabel}>Bank Name :</Text>
+              <Text style={styles.bankValue}>STATE BANK OF INDIA (SBI)</Text>
+            </View>
+            <View style={styles.bankRow}>
+              <Text style={styles.bankLabel}>Branch :</Text>
+              <Text style={styles.bankValue}>GREATER KAILASH- II</Text>
+            </View>
+          </View>
 
-        {/* Thank You & Graphic */}
-        <div className="flex justify-center items-center gap-4 mt-auto mb-8 relative z-20 w-full px-12">
-          <div className="h-[1px] bg-[#1B6B2F] flex-1"></div>
-          <div className="text-[14px] font-[500] italic text-[#111110]">
-            Thank you for your business!
-          </div>
-          <div className="h-[1px] bg-[#1B6B2F] flex-1"></div>
-        </div>
+          <View style={styles.footerBox}>
+            <Text style={styles.footerTitle}>TERMS & CONDITIONS</Text>
+            <View style={styles.addressLine} />
+            <Text style={styles.termsText}>1. This invoice is computer-generated and does not require a signature.</Text>
+            <Text style={[styles.termsText, { marginTop: 5 }]}>2. The amount paid is non-refundable under any circumstances.</Text>
+          </View>
+        </View>
 
-      </div>
+        {/* Thank you */}
+        <View style={styles.thankYouBox}>
+          <View style={styles.thankYouLine} />
+          <Text style={styles.thankYouText}>Thank you for your business!</Text>
+          <View style={styles.thankYouLine} />
+        </View>
 
-      {/* Bottom Edge Graphic */}
-      <div className="flex w-full h-[10px] absolute bottom-0 left-0">
-        <div className="w-[85%] bg-[#1B6B2F]"></div>
-        <div className="w-[15%] bg-[#F4831F]"></div>
-      </div>
-      
-    </div>
+        {/* Bottom edge graphics */}
+        <View style={styles.bottomEdge}>
+          <View style={styles.bottomEdgeGreen} />
+          <View style={styles.bottomEdgeOrange} />
+        </View>
+
+      </Page>
+    </Document>
   );
 }

@@ -1,7 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, Trash2, Download, Save, FileText } from 'lucide-react';
-import jsPDF from 'jspdf';
-import { toJpeg } from 'html-to-image';
 import toast from 'react-hot-toast';
 import InvoicePDFTemplate from './InvoicePDFTemplate';
 
@@ -164,6 +162,28 @@ export default function InvoiceGenerator({ isProforma = false }) {
         sgst = taxAmount / 2;
       }
 
+      // 1. Generate PDF blob
+      const invoiceData = {
+        invoiceNumber, issueDate, dueDate, serviceCategory,
+        clientName, clientGSTIN, contactPerson, email, billingAddress,
+        lineItems, subtotal, taxAmount, grandTotal, gstType, isProforma
+      };
+      
+      const { pdf } = await import('@react-pdf/renderer');
+      const blob = await pdf(<InvoicePDFTemplate data={invoiceData} />).toBlob();
+      
+      // 2. Convert to Base64
+      const base64PDF = await new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve(reader.result.split(',')[1]);
+        reader.readAsDataURL(blob);
+      });
+
+      // 3. Format filename
+      const formattedClientName = clientName ? clientName.replace(/[^a-zA-Z0-9]/g, '_').toUpperCase() : 'CLIENT';
+      const formattedInvoiceNumber = invoiceNumber ? invoiceNumber.replace(/[^a-zA-Z0-9]/g, '_') : 'INV';
+      const filename = `Invoice_${formattedInvoiceNumber}_${formattedClientName}.pdf`;
+
       const sheetPayload = {
         invoiceNumber: invoiceNumber,
         invoiceDate: issueDate,
@@ -176,7 +196,9 @@ export default function InvoiceGenerator({ isProforma = false }) {
         cgst: cgst,
         sgst: sgst,
         totalAmount: grandTotal,
-        paymentStatus: 'Pending'
+        paymentStatus: 'Pending',
+        pdfBase64: base64PDF,
+        pdfFilename: filename
       };
 
       const WEBHOOK_URL = "https://script.google.com/macros/s/AKfycbxrpoi0cgBfRAq-9sM_Mqpjp8U9oi_8tFuBjuVivIiYpdF-LHDop7HEcA2o-lDeG3qr/exec";
@@ -277,29 +299,28 @@ export default function InvoiceGenerator({ isProforma = false }) {
     
     setLoading(true);
     try {
-      const element = document.getElementById('pdf-template');
-      const dataUrl = await toJpeg(element, { quality: 0.85, pixelRatio: 2 });
+      const invoiceData = {
+        invoiceNumber, issueDate, dueDate, serviceCategory,
+        clientName, clientGSTIN, contactPerson, email, billingAddress,
+        lineItems, subtotal, taxAmount, grandTotal, gstType, isProforma
+      };
       
-      const pdf = new jsPDF('p', 'mm', 'a4');
-      const pdfWidth = pdf.internal.pageSize.getWidth();
-      const pageHeightInMm = pdf.internal.pageSize.getHeight();
+      const { pdf } = await import('@react-pdf/renderer');
+      const blob = await pdf(<InvoicePDFTemplate data={invoiceData} />).toBlob();
       
-      const fullHeightInMm = (element.offsetHeight * pdfWidth) / element.offsetWidth;
-      let heightLeft = fullHeightInMm;
-      let position = 0;
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
       
-      pdf.addImage(dataUrl, 'JPEG', 0, position, pdfWidth, fullHeightInMm);
-      heightLeft -= pageHeightInMm;
+      // Format: Invoice_[Invoice Number]_[Client Name].pdf
+      const formattedClientName = clientName ? clientName.replace(/[^a-zA-Z0-9]/g, '_').toUpperCase() : 'CLIENT';
+      const formattedInvoiceNumber = invoiceNumber ? invoiceNumber.replace(/[^a-zA-Z0-9]/g, '_') : 'INV';
+      link.download = `Invoice_${formattedInvoiceNumber}_${formattedClientName}.pdf`;
       
-      // Use a tolerance of 2mm to avoid creating a blank page due to sub-pixel height rounding
-      while (heightLeft > 2) {
-        position = heightLeft - fullHeightInMm;
-        pdf.addPage();
-        pdf.addImage(dataUrl, 'JPEG', 0, position, pdfWidth, fullHeightInMm);
-        heightLeft -= pageHeightInMm;
-      }
-      
-      pdf.save(`Invoice_${invoiceNumber}.pdf`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
       
       // Auto-increment the invoice number for the next one if it was just downloaded
       localStorage.setItem('lastInvoiceNumber', invoiceNumber);
@@ -321,14 +342,7 @@ export default function InvoiceGenerator({ isProforma = false }) {
 
   return (
     <div className="w-full max-w-[1000px] mx-auto p-4 sm:p-8 font-sans pb-24 relative overflow-hidden">
-      {/* Hidden PDF Template for html-to-image */}
-      <div className="absolute opacity-0 pointer-events-none" style={{ left: '-9999px', top: 0, zIndex: -50 }}>
-        <InvoicePDFTemplate data={{
-          invoiceNumber, issueDate, dueDate, serviceCategory,
-          clientName, clientGSTIN, contactPerson, email, billingAddress,
-          lineItems, subtotal, taxAmount, grandTotal, gstType, isProforma
-        }} />
-      </div>
+
       <div className="mb-7">
         <h1 className="text-[24px] font-[800] text-[#111110]">{isProforma ? 'Create Proforma Invoice' : 'Create Invoice'}</h1>
         <p className="text-[14px] text-[rgba(17,17,16,0.5)] mt-1">Generate and log new {isProforma ? 'proforma invoices' : 'invoices'} for clients</p>
