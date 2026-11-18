@@ -340,8 +340,8 @@ export default function InvoicePDFTemplate({ data }) {
             <Image src="/logo.png" style={styles.logo} />
             <Text style={styles.companyName}>BHARAT OFFICE SETU PRIVATE LIMITED</Text>
             <View style={styles.companyDetails}>
-              <Text>B-1 F/F, Opp-savitri Cinema, Greater Kailash,</Text>
-              <Text>South Delhi, New Delhi, Delhi, India, 110048</Text>
+              <Text>2nd floor, 007, Emaar Palm Square, Sec-66,</Text>
+              <Text>Gurugram, Haryana, 122101</Text>
               <Text style={{ marginTop: 2 }}>+91 9019000513</Text>
               <Text>Partners@bharatofficesetu.com</Text>
               <Text>www.bharatofficesetu.com</Text>
